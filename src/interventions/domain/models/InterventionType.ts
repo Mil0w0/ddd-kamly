@@ -1,0 +1,5 @@
+export enum InterventionType {
+  MAINTENANCE = 'MAINTENANCE',
+  EMERGENCY = 'EMERGENCY',
+  INSTALLATION = 'INSTALLATION'
+}
