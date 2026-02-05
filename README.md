@@ -2,7 +2,14 @@
 
 Logiciel de gestion pour plombier chauffagiste
 
-On va faire pour le cas des interventions du coup pour l'instant
+# Installation:
+ - Clone project
+ - Use node 24.13.0
+ - Run npm ci
+ - Run npm run test 
+
+Il n'y a pas la logique controller pour le moment ni de BDD
+On peut juste créer une intervention.
 
 # Glossaire métier : 
 
