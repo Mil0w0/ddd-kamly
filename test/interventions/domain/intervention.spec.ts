@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UUID } from 'node:crypto';
 import { InterventionType } from '../../../src/interventions/domain/models/InterventionType';
+import { InterventionTeam } from '../../../src/interventions/domain/models/InterventionTeam';
 import { Address } from '../../../src/shared/domain/address';
 import { Intervention } from '../../../src/interventions/domain/models/intervention';
 import { InterventionStatus } from '../../../src/interventions/domain/models/InterventionStatus';
@@ -45,31 +46,63 @@ describe('Intervention Entity', () => {
     it('should create an intervention with provided client IDs', () => {
       const intervention = Intervention.create(validParams);
 
-      expect(intervention.clientID).toBe(validParams.clientID);
-      expect(intervention.billableClientID).toBe(validParams.billableClientID);
+      expect(intervention.clientID.value).toBe(validParams.clientID);
+      expect(intervention.billableClientID.value).toBe(
+        validParams.billableClientID,
+      );
     });
 
     it('should initialize optional fields as null or empty', () => {
       const intervention = Intervention.create(validParams);
 
       expect(intervention.quotationID).toBeNull();
-      expect(intervention.interventionTeam).toEqual([]);
+      expect(intervention.interventionTeam).toBeInstanceOf(InterventionTeam);
       expect(intervention.interventionTeam.length).toBe(0);
+      expect(intervention.interventionTeam.isEmpty()).toBe(true);
       expect(intervention.deletedAt).toBeNull();
     });
   });
 
-  describe('complete', () => {
-    it('should change status to COMPLETED', () => {
+  describe('start', () => {
+    it('should change status from PLANNED to ONGOING', () => {
       const intervention = Intervention.create(validParams);
+
+      intervention.start();
+
+      expect(intervention.status).toBe(InterventionStatus.ONGOING);
+    });
+
+    it('should throw when starting from non-PLANNED status', () => {
+      const intervention = Intervention.create(validParams);
+      intervention.start();
+
+      expect(() => intervention.start()).toThrow(
+        'Cannot transition to ONGOING from ONGOING',
+      );
+    });
+  });
+
+  describe('complete', () => {
+    it('should change status to COMPLETED when ONGOING', () => {
+      const intervention = Intervention.create(validParams);
+      intervention.start();
 
       intervention.complete();
 
       expect(intervention.status).toBe(InterventionStatus.COMPLETED);
     });
 
+    it('should throw when completing from PLANNED', () => {
+      const intervention = Intervention.create(validParams);
+
+      expect(() => intervention.complete()).toThrow(
+        'Cannot transition to COMPLETED from PLANNED',
+      );
+    });
+
     it('should not change createdAt', () => {
       const intervention = Intervention.create(validParams);
+      intervention.start();
       const originalCreatedAt = intervention.createdAt;
 
       intervention.complete();
@@ -79,8 +112,17 @@ describe('Intervention Entity', () => {
   });
 
   describe('cancel', () => {
-    it('should change status to CANCELLED', () => {
+    it('should change status to CANCELLED from PLANNED', () => {
       const intervention = Intervention.create(validParams);
+
+      intervention.cancel();
+
+      expect(intervention.status).toBe(InterventionStatus.CANCELLED);
+    });
+
+    it('should change status to CANCELLED from ONGOING', () => {
+      const intervention = Intervention.create(validParams);
+      intervention.start();
 
       intervention.cancel();
 
@@ -100,31 +142,34 @@ describe('Intervention Entity', () => {
       }, 10);
     });
 
-    it('should be possible to cancel from any status', () => {
+    it('should throw when cancelling from COMPLETED', () => {
       const intervention = Intervention.create(validParams);
+      intervention.start();
+      intervention.complete();
 
-      // From PLANNED
-      expect(intervention.status).toBe(InterventionStatus.PLANNED);
-      intervention.cancel();
-      expect(intervention.status).toBe(InterventionStatus.CANCELLED);
-
-      // From COMPLETED
-      const intervention2 = Intervention.create(validParams);
-      intervention2.complete();
-      expect(intervention2.status).toBe(InterventionStatus.COMPLETED);
-      intervention2.cancel();
-      expect(intervention2.status).toBe(InterventionStatus.CANCELLED);
+      expect(() => intervention.cancel()).toThrow(
+        'Cannot transition to CANCELLED from COMPLETED',
+      );
     });
   });
 
   describe('status transitions', () => {
-    it('should allow PLANNED COMPLETED and CANCELLED transitions', () => {
+    it('should allow PLANNED -> start -> ONGOING -> complete -> COMPLETED', () => {
       const intervention = Intervention.create(validParams);
 
       expect(intervention.status).toBe(InterventionStatus.PLANNED);
 
+      intervention.start();
+      expect(intervention.status).toBe(InterventionStatus.ONGOING);
+
       intervention.complete();
       expect(intervention.status).toBe(InterventionStatus.COMPLETED);
+    });
+
+    it('should allow PLANNED -> cancel -> CANCELLED', () => {
+      const intervention = Intervention.create(validParams);
+
+      expect(intervention.status).toBe(InterventionStatus.PLANNED);
 
       intervention.cancel();
       expect(intervention.status).toBe(InterventionStatus.CANCELLED);

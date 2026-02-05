@@ -1,25 +1,30 @@
 import { DateTime } from 'luxon';
 import { InterventionStatus } from './InterventionStatus';
 import { InterventionType } from './InterventionType';
+import { InterventionTeam } from './InterventionTeam';
 import { Address } from '../../../shared/domain/address';
+import { Identifier } from '../../../shared/domain/identifier';
 import { UUID } from 'node:crypto';
-import { v7 as uuidv7 } from 'uuid';
 
-/*
- * Agregate
- */
+const ALLOWED_COMPLETE_FROM: InterventionStatus[] = [
+  InterventionStatus.ONGOING,
+];
+const ALLOWED_CANCEL_FROM: InterventionStatus[] = [
+  InterventionStatus.PLANNED,
+  InterventionStatus.ONGOING,
+];
+const ALLOWED_START_FROM: InterventionStatus[] = [InterventionStatus.PLANNED];
+
 export class Intervention {
-  //TODO: for all UUID introduce a custom type Identifiyer that inherits from UUID
-
   private constructor(
-    private readonly _id: UUID,
+    private readonly _id: Identifier,
     private _status: InterventionStatus,
     private _type: InterventionType,
     private _address: Address,
-    private _clientID: UUID,
-    private _billableClientID: UUID,
-    private _quotationID: UUID | null,
-    private _interventionTeam: UUID[], //Several plumbers can be booked on one intervention. TODO: Transform this into its own value object
+    private _clientID: Identifier,
+    private _billableClientID: Identifier,
+    private _quotationID: Identifier | null,
+    private _interventionTeam: InterventionTeam,
     private readonly _createdAt: DateTime,
     private _updatedAt: DateTime,
     private _deletedAt: DateTime | null,
@@ -28,44 +33,66 @@ export class Intervention {
   static create(params: {
     type: InterventionType;
     address: Address;
-    clientID: UUID;
-    billableClientID: UUID;
+    clientID: Identifier | UUID;
+    billableClientID: Identifier | UUID;
   }): Intervention {
     const now = DateTime.now();
+    const clientID =
+      params.clientID instanceof Identifier
+        ? params.clientID
+        : Identifier.create(params.clientID);
+    const billableClientID =
+      params.billableClientID instanceof Identifier
+        ? params.billableClientID
+        : Identifier.create(params.billableClientID);
+
     return new Intervention(
-      uuidv7() as UUID,
+      Identifier.generate(),
       InterventionStatus.PLANNED,
       params.type,
       params.address,
-      params.clientID,
-      params.billableClientID,
+      clientID,
+      billableClientID,
       null,
-      [],
+      InterventionTeam.empty(),
       now,
       now,
       null,
     );
   }
 
-  //todo: so do we check the status workflow in the following status updates functions.
+  start(): void {
+    this.assertTransition(InterventionStatus.ONGOING, ALLOWED_START_FROM);
+    this.updateStatus(InterventionStatus.ONGOING);
+  }
+
   complete(): void {
+    this.assertTransition(InterventionStatus.COMPLETED, ALLOWED_COMPLETE_FROM);
     this.updateStatus(InterventionStatus.COMPLETED);
   }
 
   cancel(): void {
+    this.assertTransition(InterventionStatus.CANCELLED, ALLOWED_CANCEL_FROM);
     this.updateStatus(InterventionStatus.CANCELLED);
   }
 
-  //PRIVATE METHODS :
+  private assertTransition(
+    targetStatus: InterventionStatus,
+    allowedFrom: InterventionStatus[],
+  ): void {
+    if (!allowedFrom.includes(this._status)) {
+      throw new Error(
+        `Cannot transition to ${targetStatus} from ${this._status}. Allowed from: ${allowedFrom.join(', ')}`,
+      );
+    }
+  }
 
   private updateStatus(newStatus: InterventionStatus): void {
     this._status = newStatus;
     this._updatedAt = DateTime.now();
   }
 
-  // GETTERS
-
-  get id(): UUID {
+  get id(): Identifier {
     return this._id;
   }
 
@@ -81,19 +108,19 @@ export class Intervention {
     return this._address;
   }
 
-  get clientID(): UUID {
+  get clientID(): Identifier {
     return this._clientID;
   }
 
-  get billableClientID(): UUID {
+  get billableClientID(): Identifier {
     return this._billableClientID;
   }
 
-  get quotationID(): UUID | null {
+  get quotationID(): Identifier | null {
     return this._quotationID;
   }
 
-  get interventionTeam(): UUID[] {
+  get interventionTeam(): InterventionTeam {
     return this._interventionTeam;
   }
 
