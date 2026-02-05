@@ -3,6 +3,7 @@ import { InterventionStatus } from './InterventionStatus';
 import { InterventionType } from './InterventionType';
 import { Address } from '../../../shared/domain/address';
 import { UUID } from 'node:crypto';
+import { v7 as uuidv7 } from 'uuid';
 
 /*
  * Agregate
@@ -32,7 +33,7 @@ export class Intervention {
   }): Intervention {
     const now = DateTime.now();
     return new Intervention(
-      'd2dac3fd-f05b-41d7-a992-048e7ecdcf37', //fixme j'arrive pas à générer un uuid oh
+      uuidv7() as UUID,
       InterventionStatus.PLANNED,
       params.type,
       params.address,
