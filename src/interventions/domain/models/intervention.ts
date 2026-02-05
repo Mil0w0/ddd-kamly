@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
 import { InterventionStatus } from './InterventionStatus';
 import { InterventionType } from './InterventionType';
-import { Address } from '../../../commons/address/address';
+import { Address } from '../../../shared/domain/address';
 import { UUID } from 'node:crypto';
 
 class Intervention {
