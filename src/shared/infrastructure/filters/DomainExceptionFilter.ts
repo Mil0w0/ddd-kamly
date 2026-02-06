@@ -9,12 +9,13 @@ import { Response } from 'express';
 import { DomainException } from '../../domain/exceptions';
 import { ClientNotFoundException } from '../../../clients/domain/exceptions';
 import {
+  InterventionCannotAddTeamMemberException,
   InterventionCannotBeCancelledException,
   InterventionCannotBeCompletedException,
   InterventionCannotBeStartedException,
-  InterventionCannotAddTeamMemberException,
   InterventionNotFoundException,
 } from '../../../interventions/domain/exceptions';
+import { TeamNotAvailableException } from '../../../interventions/domain/exceptions/TeamNotAvailableException';
 
 const HTTP_STATUS_MAP: Record<string, number> = {
   [ClientNotFoundException.name]: HttpStatus.NOT_FOUND,
@@ -23,6 +24,7 @@ const HTTP_STATUS_MAP: Record<string, number> = {
   [InterventionCannotBeCompletedException.name]: HttpStatus.CONFLICT,
   [InterventionCannotBeCancelledException.name]: HttpStatus.CONFLICT,
   [InterventionCannotAddTeamMemberException.name]: HttpStatus.CONFLICT,
+  [TeamNotAvailableException.name]: HttpStatus.CONFLICT,
 };
 
 const DEFAULT_HTTP_STATUS = HttpStatus.BAD_REQUEST;
