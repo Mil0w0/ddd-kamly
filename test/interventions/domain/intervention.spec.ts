@@ -5,6 +5,9 @@ import { InterventionTeam } from '../../../src/interventions/domain/models/Inter
 import { Address } from '../../../src/shared/domain/address';
 import { Intervention } from '../../../src/interventions/domain/models/intervention';
 import { InterventionStatus } from '../../../src/interventions/domain/models/InterventionStatus';
+import { InterventionCannotBeStartedException } from '../../../src/interventions/domain/exceptions/InterventionCannotBeStartedException';
+import { InterventionCannotBeCompletedException } from '../../../src/interventions/domain/exceptions/InterventionCannotBeCompletedException';
+import { InterventionCannotBeCancelledException } from '../../../src/interventions/domain/exceptions/InterventionCannotBeCancelledException';
 
 describe('Intervention Entity', () => {
   let validParams: {
@@ -72,12 +75,12 @@ describe('Intervention Entity', () => {
       expect(intervention.status).toBe(InterventionStatus.ONGOING);
     });
 
-    it('should throw when starting from non-PLANNED status', () => {
+    it('should throw InterventionCannotBeStartedException when starting from non-PLANNED status', () => {
       const intervention = Intervention.create(validParams);
       intervention.start();
 
       expect(() => intervention.start()).toThrow(
-        'Cannot transition to ONGOING from ONGOING',
+        InterventionCannotBeStartedException,
       );
     });
   });
@@ -92,11 +95,11 @@ describe('Intervention Entity', () => {
       expect(intervention.status).toBe(InterventionStatus.COMPLETED);
     });
 
-    it('should throw when completing from PLANNED', () => {
+    it('should throw InterventionCannotBeCompletedException when completing from PLANNED', () => {
       const intervention = Intervention.create(validParams);
 
       expect(() => intervention.complete()).toThrow(
-        'Cannot transition to COMPLETED from PLANNED',
+        InterventionCannotBeCompletedException,
       );
     });
 
@@ -142,13 +145,13 @@ describe('Intervention Entity', () => {
       }, 10);
     });
 
-    it('should throw when cancelling from COMPLETED', () => {
+    it('should throw InterventionCannotBeCancelledException when cancelling from COMPLETED', () => {
       const intervention = Intervention.create(validParams);
       intervention.start();
       intervention.complete();
 
       expect(() => intervention.cancel()).toThrow(
-        'Cannot transition to CANCELLED from COMPLETED',
+        InterventionCannotBeCancelledException,
       );
     });
   });

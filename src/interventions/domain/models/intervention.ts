@@ -5,6 +5,9 @@ import { InterventionTeam } from './InterventionTeam';
 import { Address } from '../../../shared/domain/address';
 import { Identifier } from '../../../shared/domain/identifier';
 import { UUID } from 'node:crypto';
+import { InterventionCannotBeStartedException } from '../exceptions/InterventionCannotBeStartedException';
+import { InterventionCannotBeCompletedException } from '../exceptions/InterventionCannotBeCompletedException';
+import { InterventionCannotBeCancelledException } from '../exceptions/InterventionCannotBeCancelledException';
 
 const ALLOWED_COMPLETE_FROM: InterventionStatus[] = [
   InterventionStatus.ONGOING,
@@ -81,9 +84,30 @@ export class Intervention {
     allowedFrom: InterventionStatus[],
   ): void {
     if (!allowedFrom.includes(this._status)) {
-      throw new Error(
-        `Cannot transition to ${targetStatus} from ${this._status}. Allowed from: ${allowedFrom.join(', ')}`,
-      );
+      this.throwInvalidTransitionException(targetStatus);
+    }
+  }
+
+  private throwInvalidTransitionException(
+    targetStatus: InterventionStatus,
+  ): never {
+    switch (targetStatus) {
+      case InterventionStatus.ONGOING:
+        throw new InterventionCannotBeStartedException(this._id, this._status);
+      case InterventionStatus.COMPLETED:
+        throw new InterventionCannotBeCompletedException(
+          this._id,
+          this._status,
+        );
+      case InterventionStatus.CANCELLED:
+        throw new InterventionCannotBeCancelledException(
+          this._id,
+          this._status,
+        );
+      default:
+        throw new Error(
+          `Cannot transition to ${targetStatus} from ${this._status}`,
+        );
     }
   }
 
