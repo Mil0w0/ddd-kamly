@@ -7,7 +7,7 @@ describe('Address Value object', () => {
     city: string;
     zipCode: string;
     country: string;
-    additionalInformations: string | undefined;
+    additionalInformation: string | undefined;
   };
 
   beforeEach(() => {
@@ -16,7 +16,7 @@ describe('Address Value object', () => {
       city: 'Paris',
       zipCode: '75001',
       country: 'France',
-      additionalInformations: '7 étage',
+      additionalInformation: '7 étage',
     };
   });
 
@@ -83,7 +83,7 @@ describe('Address Value object', () => {
 
     it('should return additionalInformation when provided', () => {
       const address = Address.create(validParams);
-      expect(address.additionalInformations).toBe('7 étage');
+      expect(address.additionalInformation).toBe('7 étage');
     });
 
     it('should return undefined for additionalInformation when not provided', () => {
@@ -93,7 +93,7 @@ describe('Address Value object', () => {
         zipCode: validParams.zipCode,
         country: validParams.country,
       });
-      expect(address.additionalInformations).toBeUndefined();
+      expect(address.additionalInformation).toBeUndefined();
     });
   });
 });

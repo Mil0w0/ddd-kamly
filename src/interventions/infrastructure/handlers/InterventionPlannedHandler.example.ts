@@ -1,4 +1,4 @@
-import type { InterventionPlanned } from '../../domain/events/InterventionPlanned';
+import type { InterventionPlanned } from '../../domain/events';
 
 export function onInterventionPlanned(event: InterventionPlanned): void {
   console.debug('[InterventionPlanned]', {

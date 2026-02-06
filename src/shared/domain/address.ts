@@ -97,7 +97,7 @@ export class Address {
     return this._country;
   }
 
-  get additionalInformations(): string | undefined {
+  get additionalInformation(): string | undefined {
     return this._additionalInformation;
   }
 }

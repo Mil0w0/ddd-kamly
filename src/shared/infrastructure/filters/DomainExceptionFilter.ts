@@ -6,12 +6,16 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { DomainException } from '../../domain/exceptions/DomainException';
-import { InterventionCannotBeStartedException } from '../../../interventions/domain/exceptions/InterventionCannotBeStartedException';
-import { InterventionCannotBeCompletedException } from '../../../interventions/domain/exceptions/InterventionCannotBeCompletedException';
-import { InterventionCannotBeCancelledException } from '../../../interventions/domain/exceptions/InterventionCannotBeCancelledException';
+import { DomainException } from '../../domain/exceptions';
+import { ClientNotFoundException } from '../../../clients/domain/exceptions';
+import {
+  InterventionCannotBeCancelledException,
+  InterventionCannotBeCompletedException,
+  InterventionCannotBeStartedException,
+} from '../../../interventions/domain/exceptions';
 
 const HTTP_STATUS_MAP: Record<string, number> = {
+  [ClientNotFoundException.name]: HttpStatus.NOT_FOUND,
   [InterventionCannotBeStartedException.name]: HttpStatus.CONFLICT,
   [InterventionCannotBeCompletedException.name]: HttpStatus.CONFLICT,
   [InterventionCannotBeCancelledException.name]: HttpStatus.CONFLICT,

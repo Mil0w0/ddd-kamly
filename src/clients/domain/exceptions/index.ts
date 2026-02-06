@@ -1,0 +1,1 @@
+export { ClientNotFoundException } from './ClientNotFoundException';
