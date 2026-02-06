@@ -2,10 +2,17 @@ import { Module } from '@nestjs/common';
 import type { DomainEventDispatcherInterface } from '../shared/domain/events';
 import { SyncDomainEventDispatcher } from '../shared/infrastructure/events/SyncDomainEventDispatcher';
 import type { InterventionRepositoryInterface } from './domain/repository/InterventionRepository.interface';
-import { InterventionPlanned } from './domain/events/InterventionPlanned';
-import { CheckTeamAvailabilityService } from './domain/services/CheckTeamAvailabilityService';
-import { PlanInterventionService } from './domain/services/PlanInterventionService';
+import {
+  InterventionPlanned,
+  TeamMemberAddedToIntervention,
+} from './domain/events';
+import {
+  CheckTeamAvailabilityService,
+  PlanInterventionService,
+} from './domain/services';
+import { AddPlumberToInterventionService } from './application/AddPlumberToIntervention.service';
 import { onInterventionPlanned } from './infrastructure/handlers/InterventionPlannedHandler.example';
+import { onTeamMemberAddedToIntervention } from './infrastructure/handlers/TeamMemberAddedToInterventionHandler.example';
 import { InMemoryInterventionRepository } from './infrastructure/repositories/InMemoryInterventionRepository';
 
 @Module({
@@ -15,6 +22,10 @@ import { InMemoryInterventionRepository } from './infrastructure/repositories/In
       useFactory: (): DomainEventDispatcherInterface => {
         const dispatcher = new SyncDomainEventDispatcher();
         dispatcher.register(InterventionPlanned, onInterventionPlanned);
+        dispatcher.register(
+          TeamMemberAddedToIntervention,
+          onTeamMemberAddedToIntervention,
+        );
         return dispatcher;
       },
     },
@@ -38,7 +49,17 @@ import { InMemoryInterventionRepository } from './infrastructure/repositories/In
       ) => new PlanInterventionService(repo, checkTeamAvailability),
       inject: ['InterventionRepository', CheckTeamAvailabilityService],
     },
+    {
+      provide: AddPlumberToInterventionService,
+      useFactory: (repo: InterventionRepositoryInterface) =>
+        new AddPlumberToInterventionService(repo),
+      inject: ['InterventionRepository'],
+    },
   ],
-  exports: [CheckTeamAvailabilityService, PlanInterventionService],
+  exports: [
+    CheckTeamAvailabilityService,
+    PlanInterventionService,
+    AddPlumberToInterventionService,
+  ],
 })
 export class InterventionsModule {}

@@ -5,13 +5,20 @@ import { InterventionTeam } from '../../../src/interventions/domain/models/Inter
 import { Address } from '../../../src/shared/domain/address';
 import { Intervention } from '../../../src/interventions/domain/models/intervention';
 import { InterventionStatus } from '../../../src/interventions/domain/models/InterventionStatus';
-import { InterventionCannotBeStartedException } from '../../../src/interventions/domain/exceptions/InterventionCannotBeStartedException';
-import { InterventionCannotBeCompletedException } from '../../../src/interventions/domain/exceptions/InterventionCannotBeCompletedException';
-import { InterventionCannotBeCancelledException } from '../../../src/interventions/domain/exceptions/InterventionCannotBeCancelledException';
-import { InterventionPlanned } from '../../../src/interventions/domain/events/InterventionPlanned';
-import { InterventionStarted } from '../../../src/interventions/domain/events/InterventionStarted';
-import { InterventionCompleted } from '../../../src/interventions/domain/events/InterventionCompleted';
-import { InterventionCancelled } from '../../../src/interventions/domain/events/InterventionCancelled';
+import {
+  InterventionCannotAddTeamMemberException,
+  InterventionCannotBeCancelledException,
+  InterventionCannotBeCompletedException,
+  InterventionCannotBeStartedException,
+} from '../../../src/interventions/domain/exceptions';
+import {
+  InterventionCancelled,
+  InterventionCompleted,
+  InterventionPlanned,
+  InterventionStarted,
+  TeamMemberAddedToIntervention,
+} from '../../../src/interventions/domain/events';
+import { Identifier } from '../../../src/shared/domain/identifier';
 
 describe('Intervention Entity', () => {
   let validParams: {
@@ -242,6 +249,69 @@ describe('Intervention Entity', () => {
       intervention.start();
       expect(intervention.releaseEvents()).toHaveLength(1);
       expect(intervention.releaseEvents()).toHaveLength(0);
+    });
+  });
+
+  describe('addTeamMember', () => {
+    it('should add a team member when status is PLANNED', () => {
+      const intervention = Intervention.create(validParams);
+      intervention.releaseEvents();
+      const plumberId = Identifier.generate();
+
+      intervention.addTeamMember(plumberId);
+
+      expect(intervention.interventionTeam.length).toBe(1);
+      expect(intervention.interventionTeam.memberIds[0].value).toBe(
+        plumberId.value,
+      );
+    });
+
+    it('should add a team member when status is ONGOING', () => {
+      const intervention = Intervention.create(validParams);
+      intervention.releaseEvents();
+      intervention.start();
+      intervention.releaseEvents();
+      const plumberId = Identifier.generate();
+
+      intervention.addTeamMember(plumberId);
+
+      expect(intervention.interventionTeam.length).toBe(1);
+    });
+
+    it('should record TeamMemberAddedToIntervention when adding a member', () => {
+      const intervention = Intervention.create(validParams);
+      intervention.releaseEvents();
+      const plumberId = Identifier.generate();
+
+      intervention.addTeamMember(plumberId);
+      const events = intervention.releaseEvents();
+
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(TeamMemberAddedToIntervention);
+      const added = events[0] as TeamMemberAddedToIntervention;
+      expect(added.interventionId.value).toBe(intervention.id.value);
+      expect(added.memberId.value).toBe(plumberId.value);
+    });
+
+    it('should throw InterventionCannotAddTeamMemberException when status is COMPLETED', () => {
+      const intervention = Intervention.create(validParams);
+      intervention.start();
+      intervention.complete();
+      const plumberId = Identifier.generate();
+
+      expect(() => intervention.addTeamMember(plumberId)).toThrow(
+        InterventionCannotAddTeamMemberException,
+      );
+    });
+
+    it('should throw InterventionCannotAddTeamMemberException when status is CANCELLED', () => {
+      const intervention = Intervention.create(validParams);
+      intervention.cancel();
+      const plumberId = Identifier.generate();
+
+      expect(() => intervention.addTeamMember(plumberId)).toThrow(
+        InterventionCannotAddTeamMemberException,
+      );
     });
   });
 });

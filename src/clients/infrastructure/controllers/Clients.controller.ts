@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Inject,
-} from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post } from '@nestjs/common';
 import type { UUID } from 'node:crypto';
 import { CreateClientService } from '../../application/CreateClient.service';
 import { GetClientByIdService } from '../../application/GetClientById.service';

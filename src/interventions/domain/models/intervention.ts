@@ -6,13 +6,19 @@ import { Address } from '../../../shared/domain/address';
 import { Identifier } from '../../../shared/domain/identifier';
 import type { DomainEvent } from '../../../shared/domain/events';
 import { UUID } from 'node:crypto';
-import { InterventionCannotBeStartedException } from '../exceptions/InterventionCannotBeStartedException';
-import { InterventionCannotBeCompletedException } from '../exceptions/InterventionCannotBeCompletedException';
-import { InterventionCannotBeCancelledException } from '../exceptions/InterventionCannotBeCancelledException';
-import { InterventionPlanned } from '../events/InterventionPlanned';
-import { InterventionStarted } from '../events/InterventionStarted';
-import { InterventionCompleted } from '../events/InterventionCompleted';
-import { InterventionCancelled } from '../events/InterventionCancelled';
+import {
+  InterventionCannotAddTeamMemberException,
+  InterventionCannotBeCancelledException,
+  InterventionCannotBeCompletedException,
+  InterventionCannotBeStartedException,
+} from '../exceptions';
+import {
+  InterventionCancelled,
+  InterventionCompleted,
+  InterventionPlanned,
+  InterventionStarted,
+  TeamMemberAddedToIntervention,
+} from '../events';
 
 const ALLOWED_COMPLETE_FROM: InterventionStatus[] = [
   InterventionStatus.ONGOING,
@@ -99,6 +105,21 @@ export class Intervention {
     this.assertTransition(InterventionStatus.CANCELLED, ALLOWED_CANCEL_FROM);
     this.updateStatus(InterventionStatus.CANCELLED);
     this.recordEvent(new InterventionCancelled(this._id, DateTime.now()));
+  }
+
+  addTeamMember(memberId: Identifier): void {
+    const allowed = [InterventionStatus.PLANNED, InterventionStatus.ONGOING];
+    if (!allowed.includes(this._status)) {
+      throw new InterventionCannotAddTeamMemberException(
+        this._id,
+        this._status,
+      );
+    }
+    this._interventionTeam = this._interventionTeam.addMember(memberId);
+    this._updatedAt = DateTime.now();
+    this.recordEvent(
+      new TeamMemberAddedToIntervention(this._id, memberId, DateTime.now()),
+    );
   }
 
   /** Records a domain event to be dispatched after persistence. */

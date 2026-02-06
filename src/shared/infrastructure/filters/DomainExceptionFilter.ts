@@ -12,13 +12,17 @@ import {
   InterventionCannotBeCancelledException,
   InterventionCannotBeCompletedException,
   InterventionCannotBeStartedException,
+  InterventionCannotAddTeamMemberException,
+  InterventionNotFoundException,
 } from '../../../interventions/domain/exceptions';
 
 const HTTP_STATUS_MAP: Record<string, number> = {
   [ClientNotFoundException.name]: HttpStatus.NOT_FOUND,
+  [InterventionNotFoundException.name]: HttpStatus.NOT_FOUND,
   [InterventionCannotBeStartedException.name]: HttpStatus.CONFLICT,
   [InterventionCannotBeCompletedException.name]: HttpStatus.CONFLICT,
   [InterventionCannotBeCancelledException.name]: HttpStatus.CONFLICT,
+  [InterventionCannotAddTeamMemberException.name]: HttpStatus.CONFLICT,
 };
 
 const DEFAULT_HTTP_STATUS = HttpStatus.BAD_REQUEST;
