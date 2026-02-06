@@ -59,4 +59,41 @@ describe('Address Value object', () => {
       expect(address1.equals(address2)).toBe(true);
     });
   });
+
+  describe('getters', () => {
+    it('should return street', () => {
+      const address = Address.create(validParams);
+      expect(address.street).toBe('123 Main St');
+    });
+
+    it('should return city', () => {
+      const address = Address.create(validParams);
+      expect(address.city).toBe('Paris');
+    });
+
+    it('should return zipCode', () => {
+      const address = Address.create(validParams);
+      expect(address.zipCode).toBe('75001');
+    });
+
+    it('should return country', () => {
+      const address = Address.create(validParams);
+      expect(address.country).toBe('France');
+    });
+
+    it('should return additionalInformations when provided', () => {
+      const address = Address.create(validParams);
+      expect(address.additionalInformations).toBe('7 étage');
+    });
+
+    it('should return undefined for additionalInformations when not provided', () => {
+      const address = Address.create({
+        street: validParams.street,
+        city: validParams.city,
+        zipCode: validParams.zipCode,
+        country: validParams.country,
+      });
+      expect(address.additionalInformations).toBeUndefined();
+    });
+  });
 });
