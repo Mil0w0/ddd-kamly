@@ -38,6 +38,7 @@ export class Intervention {
     address: Address;
     clientID: Identifier | UUID;
     billableClientID: Identifier | UUID;
+    team?: InterventionTeam;
   }): Intervention {
     const now = DateTime.now();
     const clientID =
@@ -48,6 +49,7 @@ export class Intervention {
       params.billableClientID instanceof Identifier
         ? params.billableClientID
         : Identifier.create(params.billableClientID);
+    const team = params.team ?? InterventionTeam.empty();
 
     return new Intervention(
       Identifier.generate(),
@@ -57,7 +59,7 @@ export class Intervention {
       clientID,
       billableClientID,
       null,
-      InterventionTeam.empty(),
+      team,
       now,
       now,
       null,
