@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { Identifier } from '../../../src/shared/domain/identifier';
-import { Address } from '../../../src/shared/domain/address';
-import { Intervention } from '../../../src/interventions/domain/models/intervention';
-import { InterventionTeam } from '../../../src/interventions/domain/models/InterventionTeam';
-import { InterventionType } from '../../../src/interventions/domain/models/InterventionType';
-import { CheckTeamAvailabilityService } from '../../../src/interventions/domain/services/CheckTeamAvailabilityService';
-import { TeamNotAvailableException } from '../../../src/interventions/domain/exceptions/TeamNotAvailableException';
-import { InMemoryInterventionRepository } from '../../../src/interventions/infrastructure/repositories/InMemoryInterventionRepository';
+import { Identifier } from '../../../../src/shared/domain/identifier';
+import { Address } from '../../../../src/shared/domain/address';
+import { Intervention } from '../../../../src/interventions/domain/models/intervention';
+import { InterventionTeam } from '../../../../src/interventions/domain/models/InterventionTeam';
+import { InterventionType } from '../../../../src/interventions/domain/models/InterventionType';
+import { CheckTeamAvailabilityService } from '../../../../src/interventions/domain/services/CheckTeamAvailabilityService';
+import { TeamNotAvailableException } from '../../../../src/interventions/domain/exceptions/TeamNotAvailableException';
+import { InMemoryInterventionRepository } from '../../../../src/interventions/infrastructure/repositories/InMemoryInterventionRepository';
 
 describe('CheckTeamAvailabilityService (Domain Service)', () => {
   let repository: InMemoryInterventionRepository;

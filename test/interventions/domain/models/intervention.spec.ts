@@ -1,24 +1,24 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { UUID } from 'node:crypto';
-import { InterventionType } from '../../../src/interventions/domain/models/InterventionType';
-import { InterventionTeam } from '../../../src/interventions/domain/models/InterventionTeam';
-import { Address } from '../../../src/shared/domain/address';
-import { Intervention } from '../../../src/interventions/domain/models/intervention';
-import { InterventionStatus } from '../../../src/interventions/domain/models/InterventionStatus';
+import { InterventionType } from '../../../../src/interventions/domain/models/InterventionType';
+import { Address } from '../../../../src/shared/domain/address';
+import { Intervention } from '../../../../src/interventions/domain/models/intervention';
+import { InterventionStatus } from '../../../../src/interventions/domain/models/InterventionStatus';
+import { InterventionTeam } from '../../../../src/interventions/domain/models/InterventionTeam';
 import {
   InterventionCannotAddTeamMemberException,
   InterventionCannotBeCancelledException,
   InterventionCannotBeCompletedException,
   InterventionCannotBeStartedException,
-} from '../../../src/interventions/domain/exceptions';
+} from '../../../../src/interventions/domain/exceptions';
 import {
   InterventionCancelled,
   InterventionCompleted,
   InterventionPlanned,
   InterventionStarted,
   TeamMemberAddedToIntervention,
-} from '../../../src/interventions/domain/events';
-import { Identifier } from '../../../src/shared/domain/identifier';
+} from '../../../../src/interventions/domain/events';
+import { Identifier } from '../../../../src/shared/domain/identifier';
 
 describe('Intervention Entity', () => {
   let validParams: {

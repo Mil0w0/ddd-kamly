@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { Address } from '../../../src/shared/domain/address';
+import { Address } from '../../../../src/shared/domain/address';
 
 describe('Address Value object', () => {
   let validParams: {
