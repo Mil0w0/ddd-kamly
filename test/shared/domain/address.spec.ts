@@ -81,12 +81,12 @@ describe('Address Value object', () => {
       expect(address.country).toBe('France');
     });
 
-    it('should return additionalInformations when provided', () => {
+    it('should return additionalInformation when provided', () => {
       const address = Address.create(validParams);
       expect(address.additionalInformations).toBe('7 étage');
     });
 
-    it('should return undefined for additionalInformations when not provided', () => {
+    it('should return undefined for additionalInformation when not provided', () => {
       const address = Address.create({
         street: validParams.street,
         city: validParams.city,

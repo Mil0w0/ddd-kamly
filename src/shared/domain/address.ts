@@ -7,7 +7,7 @@ export class Address {
     private readonly _city: string,
     private readonly _zipCode: string,
     private readonly _country: string,
-    private readonly _additionalInformations?: string,
+    private readonly _additionalInformation?: string,
   ) {}
 
   static create(params: {
@@ -15,7 +15,7 @@ export class Address {
     city: string;
     zipCode: string;
     country: string;
-    additionalInformations?: string;
+    additionalInformation?: string;
   }): Address {
     // Validation
     this.validate(params);
@@ -25,7 +25,7 @@ export class Address {
       params.city,
       params.zipCode,
       params.country,
-      params.additionalInformations,
+      params.additionalInformation,
     );
   }
 
@@ -63,15 +63,15 @@ export class Address {
       this._city === other._city &&
       this._zipCode === other._zipCode &&
       this._country === other._country &&
-      this._additionalInformations === other._additionalInformations
+      this._additionalInformation === other._additionalInformation
     );
   }
 
   toString(): string {
     const parts = [this._street];
 
-    if (this._additionalInformations) {
-      parts.push(this._additionalInformations);
+    if (this._additionalInformation) {
+      parts.push(this._additionalInformation);
     }
 
     parts.push(`${this._zipCode} ${this._city}`);
@@ -98,6 +98,6 @@ export class Address {
   }
 
   get additionalInformations(): string | undefined {
-    return this._additionalInformations;
+    return this._additionalInformation;
   }
 }
