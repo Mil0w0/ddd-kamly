@@ -8,6 +8,10 @@ import { InterventionStatus } from '../../../src/interventions/domain/models/Int
 import { InterventionCannotBeStartedException } from '../../../src/interventions/domain/exceptions/InterventionCannotBeStartedException';
 import { InterventionCannotBeCompletedException } from '../../../src/interventions/domain/exceptions/InterventionCannotBeCompletedException';
 import { InterventionCannotBeCancelledException } from '../../../src/interventions/domain/exceptions/InterventionCannotBeCancelledException';
+import { InterventionPlanned } from '../../../src/interventions/domain/events/InterventionPlanned';
+import { InterventionStarted } from '../../../src/interventions/domain/events/InterventionStarted';
+import { InterventionCompleted } from '../../../src/interventions/domain/events/InterventionCompleted';
+import { InterventionCancelled } from '../../../src/interventions/domain/events/InterventionCancelled';
 
 describe('Intervention Entity', () => {
   let validParams: {
@@ -176,6 +180,68 @@ describe('Intervention Entity', () => {
 
       intervention.cancel();
       expect(intervention.status).toBe(InterventionStatus.CANCELLED);
+    });
+  });
+
+  describe('Domain Events', () => {
+    it('should record InterventionPlanned when created', () => {
+      const intervention = Intervention.create(validParams);
+      const events = intervention.releaseEvents();
+
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(InterventionPlanned);
+      const planned = events[0] as InterventionPlanned;
+      expect(planned.interventionId.value).toBe(intervention.id.value);
+      expect(planned.clientId.value).toBe(validParams.clientID);
+      expect(planned.billableClientId.value).toBe(validParams.billableClientID);
+      expect(planned.type).toBe(InterventionType.MAINTENANCE);
+    });
+
+    it('should record InterventionStarted when start() is called', () => {
+      const intervention = Intervention.create(validParams);
+      intervention.releaseEvents();
+
+      intervention.start();
+      const events = intervention.releaseEvents();
+
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(InterventionStarted);
+      expect((events[0] as InterventionStarted).interventionId.value).toBe(
+        intervention.id.value,
+      );
+    });
+
+    it('should record InterventionCompleted when complete() is called', () => {
+      const intervention = Intervention.create(validParams);
+      intervention.releaseEvents();
+      intervention.start();
+      intervention.releaseEvents();
+
+      intervention.complete();
+      const events = intervention.releaseEvents();
+
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(InterventionCompleted);
+    });
+
+    it('should record InterventionCancelled when cancel() is called', () => {
+      const intervention = Intervention.create(validParams);
+      intervention.releaseEvents();
+
+      intervention.cancel();
+      const events = intervention.releaseEvents();
+
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(InterventionCancelled);
+    });
+
+    it('should clear events after releaseEvents()', () => {
+      const intervention = Intervention.create(validParams);
+      intervention.releaseEvents();
+
+      intervention.start();
+      expect(intervention.releaseEvents()).toHaveLength(1);
+      expect(intervention.releaseEvents()).toHaveLength(0);
     });
   });
 });

@@ -4,10 +4,15 @@ import { InterventionType } from './InterventionType';
 import { InterventionTeam } from './InterventionTeam';
 import { Address } from '../../../shared/domain/address';
 import { Identifier } from '../../../shared/domain/identifier';
+import type { DomainEvent } from '../../../shared/domain/events';
 import { UUID } from 'node:crypto';
 import { InterventionCannotBeStartedException } from '../exceptions/InterventionCannotBeStartedException';
 import { InterventionCannotBeCompletedException } from '../exceptions/InterventionCannotBeCompletedException';
 import { InterventionCannotBeCancelledException } from '../exceptions/InterventionCannotBeCancelledException';
+import { InterventionPlanned } from '../events/InterventionPlanned';
+import { InterventionStarted } from '../events/InterventionStarted';
+import { InterventionCompleted } from '../events/InterventionCompleted';
+import { InterventionCancelled } from '../events/InterventionCancelled';
 
 const ALLOWED_COMPLETE_FROM: InterventionStatus[] = [
   InterventionStatus.ONGOING,
@@ -19,6 +24,8 @@ const ALLOWED_CANCEL_FROM: InterventionStatus[] = [
 const ALLOWED_START_FROM: InterventionStatus[] = [InterventionStatus.PLANNED];
 
 export class Intervention {
+  private _domainEvents: DomainEvent[] = [];
+
   private constructor(
     private readonly _id: Identifier,
     private _status: InterventionStatus,
@@ -51,7 +58,7 @@ export class Intervention {
         : Identifier.create(params.billableClientID);
     const team = params.team ?? InterventionTeam.empty();
 
-    return new Intervention(
+    const intervention = new Intervention(
       Identifier.generate(),
       InterventionStatus.PLANNED,
       params.type,
@@ -64,21 +71,46 @@ export class Intervention {
       now,
       null,
     );
+    intervention.recordEvent(
+      new InterventionPlanned(
+        intervention._id,
+        clientID,
+        billableClientID,
+        params.type,
+        now,
+      ),
+    );
+    return intervention;
   }
 
   start(): void {
     this.assertTransition(InterventionStatus.ONGOING, ALLOWED_START_FROM);
     this.updateStatus(InterventionStatus.ONGOING);
+    this.recordEvent(new InterventionStarted(this._id, DateTime.now()));
   }
 
   complete(): void {
     this.assertTransition(InterventionStatus.COMPLETED, ALLOWED_COMPLETE_FROM);
     this.updateStatus(InterventionStatus.COMPLETED);
+    this.recordEvent(new InterventionCompleted(this._id, DateTime.now()));
   }
 
   cancel(): void {
     this.assertTransition(InterventionStatus.CANCELLED, ALLOWED_CANCEL_FROM);
     this.updateStatus(InterventionStatus.CANCELLED);
+    this.recordEvent(new InterventionCancelled(this._id, DateTime.now()));
+  }
+
+  /** Records a domain event to be dispatched after persistence. */
+  protected recordEvent(event: DomainEvent): void {
+    this._domainEvents.push(event);
+  }
+
+  /** Returns and clears all recorded domain events. Call after save. */
+  releaseEvents(): DomainEvent[] {
+    const events = [...this._domainEvents];
+    this._domainEvents = [];
+    return events;
   }
 
   private assertTransition(
